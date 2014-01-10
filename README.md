@@ -26,12 +26,13 @@ nested inline support: `NestedModelAdmin`, `NestedStackedInline`, and
 1. Add `grappelli_nested` to your `INSTALLED_APPS` **before** `grappelli` and
 `django.contrib.admin`. This is because this app overrides certain admin
 templates and media.
-2. Import `NestedModelAdmin`, `NestedStackedInline`, and `NestedTabularInline`
+2. Run `./manage.py collectstatic` to get the new CSS and Javascript files that come with grappelli-nested-inlines.
+3. Import `NestedModelAdmin`, `NestedStackedInline`, and `NestedTabularInline`
 wherever you want to use nested inlines.
-3. On admin classes that will contain nested inlines, use `NestedModelAdmin`
+4. On admin classes that will contain nested inlines, use `NestedModelAdmin`
 rather than the standard `ModelAdmin`.
-4. On inline classes, use `Nested` versions instead of the standard ones.
-5. Add an `inlines = [MyInline,]` attribute to your inlines and watch the
+5. On inline classes, use `Nested` versions instead of the standard ones.
+6. Add an `inlines = [MyInline,]` attribute to your inlines and watch the
 magic happen.
 
 ## Example
@@ -54,7 +55,7 @@ magic happen.
 
 ## Credits
 
-As Trinh said himself, this package is mainly the work of other developers. I (Allan James Vestal) have only adapted this package to support Django Grappelli (as Trinh says he's taken other developers' patches "and packaged them nicely for ease of use").
+As Trinh said himself, this package is mainly the work of other developers. I (Vestal) have merely adapted this package to support Django Grappelli (as Trinh says he's taken other developers' patches "and packaged them nicely for ease of use").
 
 Besides Trinh, additional credit goes to:
 
