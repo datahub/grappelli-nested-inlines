@@ -1,0 +1,64 @@
+# django-nested-inlines
+
+## Overview
+
+Extends Alain Trinh ([http://github.com/Soaa-/](http://github.com/Soaa-/))'s django-nested-inlines code to work with the latest version of [Django Grappelli](http://github.com/sehmaschine/django-grappelli).
+
+[Django issue #9025](http://code.djangoproject.com/ticket/9025)
+
+Patches have been submitted, and repositories forked, but no one likes to use
+either one. Now, nested inlines are available in an easy-to-install package.
+
+### Issues
+
+This is still beta-quality software, and certainly has its share of bugs. Use it in production sites at your own risk.
+
+## Installation
+
+`pip install -e git+git://github.com/datahub/grappelli-nested-inlines.git#egg=grappelli-nested-inlines`
+
+## Usage
+
+`grappelli_nested.admin` contains three `ModelAdmin` subclasses to enable
+nested inline support: `NestedModelAdmin`, `NestedStackedInline`, and
+`NestedTabularInline`. To use them:
+
+1. Add `grappelli_nested` to your `INSTALLED_APPS` **before** `grappelli` and
+`django.contrib.admin`. This is because this app overrides certain admin
+templates and media.
+2. Import `NestedModelAdmin`, `NestedStackedInline`, and `NestedTabularInline`
+wherever you want to use nested inlines.
+3. On admin classes that will contain nested inlines, use `NestedModelAdmin`
+rather than the standard `ModelAdmin`.
+4. On inline classes, use `Nested` versions instead of the standard ones.
+5. Add an `inlines = [MyInline,]` attribute to your inlines and watch the
+magic happen.
+
+## Example
+
+    from django.contrib import admin
+    from grappelli_nested.admin import NestedModelAdmin, NestedStackedInline, NestedTabularInline
+    from models import A, B, C
+
+    class MyNestedInline(NestedTabularInline):
+        model = C
+
+    class MyInline(NestedStackedInline):
+        model = B
+        inlines = [MyNestedInline,]
+
+    class MyAdmin(NestedModelAdmin):
+        pass
+
+    admin.site.register(A, MyAdmin)
+
+## Credits
+
+As Trinh said himself, this package is mainly the work of other developers. I (Allan James Vestal) have only adapted this package to support Django Grappelli (as Trinh says he's taken other developers' patches "and packaged them nicely for ease of use").
+
+Besides Trinh, additional credit goes to:
+
+- Gargamel for providing the base patch on the Django ticket.
+- Stefan Klug for providing a fork with the patch applied, and for bugfixes.
+
+See [Stefan Klug's repository](https://github.com/stefanklug/django/tree/nested-inline-support-1.5.x).
