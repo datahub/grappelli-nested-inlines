@@ -19,9 +19,10 @@ class NestedModelAdmin(ModelAdmin):
         js = ('admin/js/nested.js',)
 
     def get_form(self, request, obj=None, **kwargs):
-        if kwargs['form'] != None:
-            return super(NestedModelAdmin, self).get_form(
-                request, obj, **kwargs)
+        if 'form' in kwargs:
+            if kwargs['form'] != None:
+                return super(NestedModelAdmin, self).get_form(
+                    request, obj, **kwargs)
         return super(NestedModelAdmin, self).get_form(
             request, obj, form=BaseNestedModelForm, **kwargs)
 
