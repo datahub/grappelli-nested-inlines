@@ -1,3 +1,4 @@
+from django import VERSION as DJANGO_VERSION
 from django.contrib.admin.options import (ModelAdmin, InlineModelAdmin,
     csrf_protect_m, models, transaction, all_valid,
     PermissionDenied, unquote, escape, Http404, reverse)
@@ -214,6 +215,7 @@ class NestedModelAdmin(ModelAdmin):
             'inline_admin_formsets': inline_admin_formsets,
             'errors': AdminErrorList(form, formsets),
             'app_label': opts.app_label,
+            'django_version_lt_1_6': DJANGO_VERSION < (1, 6)
         }
         context.update(extra_context or {})
         return self.render_change_form(request, context, form_url=form_url, add=True)
@@ -311,6 +313,7 @@ class NestedModelAdmin(ModelAdmin):
             'inline_admin_formsets': inline_admin_formsets,
             'errors': AdminErrorList(form, formsets),
             'app_label': opts.app_label,
+            'django_version_lt_1_6': DJANGO_VERSION < (1, 6)
         }
         context.update(extra_context or {})
         return self.render_change_form(request, context, change=True, obj=obj, form_url=form_url)

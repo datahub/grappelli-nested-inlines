@@ -50,8 +50,14 @@
                     {% include "admin/includes/fieldset_inline.html" %}
                 {% endfor %}
                 {{ inline_admin_form.fk_field.field }}
-                {% if inline_admin_form.needs_explicit_pk_field %}
-                    {{ inline_admin_form.pk_field.field }}
+                {% if django_version_lt_1_6 %}
+                    {% if inline_admin_form.has_auto_field %}
+                        {{ inline_admin_form.pk_field.field }}
+                    {% endif %}
+                {% else %}
+                    {% if inline_admin_form.needs_explicit_pk_field %}
+                        {{ inline_admin_form.pk_field.field }}
+                    {% endif %}
                 {% endif %}
 
 
