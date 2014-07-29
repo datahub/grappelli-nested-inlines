@@ -72,9 +72,14 @@ class NestedModelAdmin(ModelAdmin):
                 keys = request.POST.keys()
                 has_params = any(s.startswith(prefix) for s in keys)
                 if request.method == 'POST' and has_params:
-                    nested_formset = InlineFormSet(request.POST, request.FILES,
-                                                   instance=form.instance,
-                                                   prefix=prefix, queryset=nested_inline.queryset(request))
+                    nested_formset = InlineFormSet(
+                                    request.POST,
+                                    request.FILES,
+                                    save_as_new="_saveasnew" in request.POST,
+                                    instance=form.instance,
+                                    prefix=prefix,
+                                    queryset=nested_inline.queryset(request)
+                                )
                 else:
                     nested_formset = InlineFormSet(instance=form.instance,
                                                    prefix=prefix, queryset=nested_inline.queryset(request))
