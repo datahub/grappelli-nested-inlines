@@ -1,17 +1,20 @@
 #!/usr/bin/python
 from setuptools import setup, find_packages
 
+
 from grappelli_nested import __version__
 
+
 github_url = 'https://github.com/datahub/grappelli-nested-inlines'
-long_desc = open('README.md').read()
+github_tag_version = '0.5'
+
 
 setup(
     name='grappelli-nested-inlines',
     version='.'.join(str(v) for v in __version__),
     description='Enables nested inlines in the Django/Grappelli admin',
-    long_description=long_desc,
     url=github_url,
+    download_url='%s/tarball/%s' % (github_url, github_tag_version),
     author='Allan James Vestal (based on code by Alain Trinh)',
     author_email='datahub@jrn.com',
     packages=find_packages(exclude=['tests']),
