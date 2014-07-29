@@ -15,6 +15,8 @@ from grappelli_nested.forms import BaseNestedModelForm, BaseNestedInlineFormSet
 from grappelli_nested.helpers import AdminErrorList
 
 class NestedModelAdmin(ModelAdmin):
+    form = BaseNestedModelForm
+
     class Media:
         css = {'all': ('admin/css/nested.css',)}
         js = ('admin/js/inlines.js',)
