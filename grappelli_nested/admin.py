@@ -16,7 +16,7 @@ from helpers import AdminErrorList
 class NestedModelAdmin(ModelAdmin):
     class Media:
         css = {'all': ('admin/css/nested.css',)}
-        js = ('admin/js/nested.js',)
+        js = ('admin/js/inlines.js',)
 
     def get_form(self, request, obj=None, **kwargs):
         if 'form' in kwargs:
@@ -49,7 +49,10 @@ class NestedModelAdmin(ModelAdmin):
 
         #iterate through the nested formsets and save them
         #skip formsets, where the parent is marked for deletion
-        deleted_forms = formset.deleted_forms
+        if formset.can_delete:
+            deleted_forms = formset.deleted_forms
+        else:
+            deleted_forms = []
         for form in formset.forms:
             if hasattr(form, 'nested_formsets') and form not in deleted_forms:
                 for nested_formset in form.nested_formsets:
