@@ -339,7 +339,7 @@ class NestedInlineModelAdmin(InlineModelAdmin):
         return inline_instances
 
     def get_formsets(self, request, obj=None):
-        for inline in self.get_inline_instances(request):
+        for inline in self.get_inline_instances(request, obj):
             yield inline.get_formset(request, obj)
 
 class NestedStackedInline(NestedInlineModelAdmin):
