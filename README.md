@@ -15,7 +15,7 @@ This is still beta-quality software, and certainly has its share of bugs. Use it
 
 ## Installation
 
-`pip install -e git+git://github.com/datahub/grappelli-nested-inlines.git#egg=grappelli-nested-inlines`
+`pip install grappelli-nested-inlines`
 
 ## Usage
 
