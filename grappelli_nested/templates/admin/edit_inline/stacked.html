@@ -2,16 +2,6 @@
 {% with recursive_formset=inline_admin_formset stacked_template='admin/edit_inline/stacked.html' tabular_template='admin/edit_inline/tabular.html'%}
 {% with recursive_formset.opts.sortable_field_name|default:"" as sortable_field_name %}
 
-<style type="text/css">
-    .nested-inline {
-        margin: 0;
-    }
-    .nested-inline .nested-inline {
-        border: 1px solid #AAAAAA;
-        margin: 12px 1% 17px 1%;
-        width: 97.6%;
-    }
-</style>
 
 <div class="grp-group grp-stacked {% if recursive_formset %}{{ recursive_formset.formset.prefix|default:"Root" }}-nested-inline nested-inline{% endif %} {% if inline_admin_formset.opts.classes %} {{ inline_admin_formset.opts.classes|join:" " }}{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-group">
         <h2 class="grp-collapse-handler">{% if inline_admin_formset.opts.title %}{{ inline_admin_formset.opts.title }}{% else %}{{ inline_admin_formset.opts.verbose_name_plural|title }}{% endif %}</h2>

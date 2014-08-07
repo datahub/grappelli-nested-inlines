@@ -2,16 +2,6 @@
 {% load i18n admin_static admin_modify grp_tags %}
 {% with recursive_formset=inline_admin_formset stacked_template='admin/edit_inline/stacked.html' tabular_template='admin/edit_inline/tabular.html'%}
 
-<style type="text/css">
-    .nested-inline {
-        margin: 0;
-    }
-    .nested-inline .nested-inline {
-        border: 1px solid #AAAAAA;
-        margin: 12px 1% 17px 1%;
-        width: 97.6%;
-    }
-</style>
 
 <div class="grp-group grp-tabular{% if recursive_formset %} {{ recursive_formset.formset.prefix|default:"Root" }}-nested-inline nested-inline{% endif %} {% if inline_admin_formset.opts.classes %} {{ inline_admin_formset.opts.classes|join:" " }}{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-group">
    <h2 class="grp-collapse-handler">{% if recursive_formset.opts.title %}{{ recursive_formset.opts.title }}{% else %}{{ recursive_formset.opts.verbose_name_plural|capfirst }}{% endif %}</h2>
@@ -100,7 +90,7 @@
 
                 {% if inline_admin_form.form.nested_formsets %}
                     {% for inline_admin_formset in inline_admin_form.form.nested_formsets %}
-                        <div class="grp-tr nested-inline-row {{ row_number_class }}{% if not forloop.last %} no-bottom-border{% endif %}">
+                        <div class="grp-tr nested-inline {{ row_number_class }}{% if not forloop.last %} no-bottom-border{% endif %}">
                             <div class="grp-td">
                                 {% if inline_admin_formset.opts.template == stacked_template %}
                                     {% include stacked_template with indent=0 prev_prefix=recursive_formset.formset.prefix %}
