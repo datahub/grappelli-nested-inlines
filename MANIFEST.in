@@ -1,0 +1,2 @@
+recursive-include grappelli_nested/static *
+recursive-include grappelli_nested/templates *

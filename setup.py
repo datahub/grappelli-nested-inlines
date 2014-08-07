@@ -6,7 +6,7 @@ from grappelli_nested import __version__
 
 
 github_url = 'https://github.com/datahub/grappelli-nested-inlines'
-github_tag_version = '0.5.5'
+github_tag_version = '0.5.6'
 
 
 setup(
