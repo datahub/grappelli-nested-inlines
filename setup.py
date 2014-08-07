@@ -6,7 +6,7 @@ from grappelli_nested import __version__
 
 
 github_url = 'https://github.com/datahub/grappelli-nested-inlines'
-github_tag_version = '0.5.3'
+github_tag_version = '0.5.4'
 
 
 setup(
@@ -31,6 +31,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     package_data={'grappelli_nested' : ['templates/admin/edit_inline/*.html',
-                                      'static/admin/css/*.css',
-                                      'static/grappelli/js/*.js']},
+                                      'static/grappelli_nested/css/*.css',
+                                      'static/grappelli_nested/js/*.js']},
 )

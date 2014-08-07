@@ -18,8 +18,8 @@ class NestedModelAdmin(ModelAdmin):
     form = BaseNestedModelForm
 
     class Media:
-        css = {'all': ('admin/css/nested.css',)}
-        js = ('admin/js/inlines.js',)
+        css = {'all': ('grappelli_nested/css/grp_nested_inline.css',)}
+        js = ('grappelli_nested/js/grp_nested_inline.js',)
 
     def get_form(self, request, obj=None, **kwargs):
         if not issubclass(self.form, BaseNestedModelForm):
