@@ -30,7 +30,4 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    package_data={'grappelli_nested' : ['templates/admin/edit_inline/*.html',
-                                      'static/grappelli_nested/css/*.css',
-                                      'static/grappelli_nested/js/*.js']},
 )
