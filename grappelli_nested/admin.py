@@ -328,6 +328,7 @@ class NestedModelAdmin(ModelAdmin):
 class NestedInlineModelAdmin(InlineModelAdmin):
     inlines = []
     formset = BaseNestedInlineFormSet
+    form = BaseNestedModelForm
 
     def get_form(self, request, obj=None, **kwargs):
         return super(NestedModelAdmin, self).get_form(

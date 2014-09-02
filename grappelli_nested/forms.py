@@ -26,6 +26,15 @@ class NestedFormMixin(object):
         """
         return False
 
+    def has_changed(self):
+        """
+        Returns True if data or nested data differs from initial.
+        """
+        nested_formsets = getattr(self, 'nested_formsets', ())
+        return (
+            super(NestedFormMixin, self).has_changed() or
+            any((formset.has_changed() for formset in nested_formsets)))
+
 class BaseNestedForm(NestedFormMixin, BaseForm):
     pass
 
