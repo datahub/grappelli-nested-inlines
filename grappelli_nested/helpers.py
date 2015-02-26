@@ -6,6 +6,7 @@ class AdminErrorList(AdminErrorList):
     Stores all errors for the form/formsets in an add/change stage view.
     """
     def __init__(self, form, inline_formsets):
+        super(AdminErrorList, self).__init__(form, inline_formsets)
         if form.is_bound:
             self.extend(form.errors.values())
             for inline_formset in inline_formsets:
