@@ -61,6 +61,7 @@
     };
 
     initInlineForms = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         elem.find("div.grp-module").each(function() {
             var form = $(this);
             // callback
@@ -82,6 +83,7 @@
     };
 
     initAddButtons = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         var totalForms = elem.find("#id_" + options.prefix + "-TOTAL_FORMS");
         var maxForms = elem.find("#id_" + options.prefix + "-MAX_NUM_FORMS");
         var addButtons = elem.find("a." + options.addCssClass + "." + elem.attr('id'));
@@ -92,6 +94,7 @@
     };
 
     addButtonHandler = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
             var inline = elem.closest(".grp-group"),
                 totalForms = inline.find("#id_" + options.prefix + "-TOTAL_FORMS"),
@@ -104,16 +107,16 @@
             var index = parseInt(totalForms.val(), 10),
                 form = empty_template.clone(true);
             form.removeClass(options.emptyCssClass)
-                .attr("id", empty_template.attr('id').replace("-empty", index));
+                .attr("id", empty_template.attr('id').replace("-empty", '-' + index));
             // update form index
-            var re = /__prefix__/g;
+            var re = /__prefix__/;
             updateFormIndex(form, options, re, index);
             // after "__prefix__" strings has been substituted with the number
             // of the inline, we can add the form to DOM, not earlier.
             // This way we can support handlers that track live element
             // adding/removing, like those used in django-autocomplete-light
             form.insertBefore(empty_template)
-                .addClass(options.formCssClass);
+                .addClass(options.formCssClass).grp_inline(options);
             // update total forms
             totalForms.val(index + 1);
             // hide add button in case we've hit the max, except we want to add infinitely
@@ -126,8 +129,9 @@
     };
 
     removeButtonHandler = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
-            var inline = elem.parents(".grp-group"),
+            var inline = elem.parents(".grp-group").first(),
                 form = $(this).parents("." + options.formCssClass).first(),
                 totalForms = inline.find("#id_" + options.prefix + "-TOTAL_FORMS"),
                 maxForms = inline.find("#id_" + options.prefix + "-MAX_NUM_FORMS");
@@ -143,10 +147,10 @@
                 showAddButtons(inline, options);
             }
             // update form index (for all forms)
-            var re = /-\d+-/g,
+            var re = new RegExp(options.prefix + "-\\d+-", 'g'),
                 i = 0;
             inline.find("." + options.formCssClass).each(function() {
-                updateFormIndex($(this), options, re, "-" + i + "-");
+                updateFormIndex($(this), options, re, options.prefix + "-" + i + "-");
                 i++;
             });
             // callback
@@ -155,6 +159,7 @@
     };
 
     deleteButtonHandler = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
             var deleteInput = $(this).prev(),
                 form = $(this).parents("." + options.formCssClass).first();
@@ -175,12 +180,14 @@
     };
 
     hideAddButtons = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         var addButtons = elem.find("a." + options.addCssClass + "." + elem.attr('id'));
         // addButtons.hide().parents('.grp-add-item').hide();
         addButtons.hide();
     };
 
     showAddButtons = function(elem, options) {
+        if (options.prefix.split('__prefix__').length != 1) return;
         var addButtons = elem.find("a." + options.addCssClass + "." + elem.attr('id'));
         // addButtons.show().parents('.grp-add-item').show();
         addButtons.show();
