@@ -18,7 +18,7 @@ class NestedFormMixin(object):
         self._clean_fields()
         self._clean_form()
         self._post_clean()
-    
+
     def dependency_has_changed(self):
         """
         Returns true, if any dependent form has changed.
@@ -46,6 +46,6 @@ class NestedModelFormMixin(NestedFormMixin):
         if hasattr(self, 'nested_formsets'):
             for f in self.nested_formsets:
                 return f.dependency_has_changed()
-            
+
 class BaseNestedModelForm(NestedModelFormMixin, ModelForm):
     pass
