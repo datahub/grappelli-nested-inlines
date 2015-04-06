@@ -61,12 +61,12 @@ class NestedModelAdmin(ModelAdmin):
     def add_nested_inline_formsets(self, request, inline, formset, depth=0):
         if depth > 5:
             raise Exception("Maximum nesting depth reached (5)")
-        for form in formset.forms:
+        empty_form = formset.empty_form
+        for form in formset.forms + [empty_form]:
             nested_formsets = []
             for nested_inline in inline.get_inline_instances(request):
                 InlineFormSet = nested_inline.get_formset(request, form.instance)
                 prefix = "%s-%s" % (form.prefix, InlineFormSet.get_default_prefix())
-
                 #because of form nesting with extra=0 it might happen, that the post data doesn't include values for the formset.
                 #This would lead to a Exception, because the ManagementForm construction fails. So we check if there is data available, and otherwise create an empty form
                 keys = request.POST.keys()
@@ -87,6 +87,30 @@ class NestedModelAdmin(ModelAdmin):
                 if nested_inline.inlines:
                     self.add_nested_inline_formsets(request, nested_inline, nested_formset, depth=depth+1)
             form.nested_formsets = nested_formsets
+        form = empty_form
+        media = None
+        def get_media(extra_media):
+            if media:
+                return media + extra_media
+            else:
+                return extra_media
+        wrapped_nested_formsets = []
+        for nested_inline, nested_formset in zip(inline.get_inline_instances(request), form.nested_formsets):
+             if form.instance.pk:
+                    instance = form.instance
+             else:
+                instance = None
+             fieldsets = list(nested_inline.get_fieldsets(request))
+             readonly = list(nested_inline.get_readonly_fields(request))
+             prepopulated = dict(nested_inline.get_prepopulated_fields(request))
+             wrapped_nested_formset = InlineAdminFormSet(nested_inline, nested_formset,
+                 fieldsets, prepopulated, readonly, model_admin=self)
+             wrapped_nested_formsets.append(wrapped_nested_formset)
+             media = get_media(wrapped_nested_formset.media)
+             if nested_inline.inlines:
+                 media = get_media(self.wrap_nested_inline_formsets(request, nested_inline, nested_formset))
+        form.nested_formsets = wrapped_nested_formsets
+        formset.__class__.empty_form = empty_form
 
     def wrap_nested_inline_formsets(self, request, inline, formset):
         """wraps each formset in a helpers.InlineAdminFormset.
@@ -328,6 +352,7 @@ class NestedModelAdmin(ModelAdmin):
 class NestedInlineModelAdmin(InlineModelAdmin):
     inlines = []
     formset = BaseNestedInlineFormSet
+    form = BaseNestedModelForm
 
     def get_form(self, request, obj=None, **kwargs):
         return super(NestedModelAdmin, self).get_form(
