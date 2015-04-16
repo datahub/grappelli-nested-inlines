@@ -78,11 +78,10 @@ class NestedModelAdmin(ModelAdmin):
                                     save_as_new="_saveasnew" in request.POST,
                                     instance=form.instance,
                                     prefix=prefix,
-                                    queryset=nested_inline.queryset(request)
                                 )
                 else:
                     nested_formset = InlineFormSet(instance=form.instance,
-                                                   prefix=prefix, queryset=nested_inline.queryset(request))
+                                                   prefix=prefix)
                 nested_formsets.append(nested_formset)
                 if nested_inline.inlines:
                     self.add_nested_inline_formsets(request, nested_inline, nested_formset, depth=depth+1)
@@ -311,7 +310,7 @@ class NestedModelAdmin(ModelAdmin):
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 formset = FormSet(instance=obj, prefix=prefix,
-                                  queryset=inline.queryset(request))
+                                  )
                 formsets.append(formset)
                 if inline.inlines:
                     self.add_nested_inline_formsets(request, inline, formset)
