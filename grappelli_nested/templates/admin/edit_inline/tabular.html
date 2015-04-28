@@ -25,7 +25,7 @@
         {% with recursive_formset.opts.sortable_field_name|default:"" as sortable_field_name %}
         {% for inline_admin_form in recursive_formset|formsetsort:sortable_field_name %}
 
-            <div class="grp-module grp-tbody {% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last %} grp-empty-form{% endif %}" id="{{ recursive_formset.formset.prefix }}{% if not forloop.last %}{{ forloop.counter0 }}{% else %}-empty{% endif %}">
+            <div class="grp-module grp-tbody {% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last %} grp-empty-form{% endif %}" id="{{ recursive_formset.formset.prefix }}{% if not forloop.last %}-{{ forloop.counter0 }}{% else %}-empty{% endif %}">
                 {% if inline_admin_form.form.non_field_errors %}
                     {{ inline_admin_form.form.non_field_errors }}
                 {% endif %}
