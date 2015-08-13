@@ -32,8 +32,12 @@ class NestedFormMixin(object):
         """
         if self.instance.pk is None:
             nested_formsets = getattr(self, 'nested_formsets', ())
-            nested_has_changed = any(
+            try:
+            	nested_has_changed = any(
                 (formset.has_changed() for formset in nested_formsets))
+            except AttributeError:
+                # catch an error if a give form has no has_changed setting
+                nested_has_changed = True
         else:
             nested_has_changed = False
         return (super(NestedFormMixin, self).has_changed() or
