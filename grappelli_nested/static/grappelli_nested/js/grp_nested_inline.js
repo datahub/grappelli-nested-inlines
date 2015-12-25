@@ -149,7 +149,7 @@
             // update form index (for all forms)
             var re = new RegExp(options.prefix + "-\\d+-", 'g'),
                 i = 0;
-            inline.find("." + options.formCssClass).each(function() {
+            inline.children(".grp-items>." + options.formCssClass).each(function() {
                 updateFormIndex($(this), options, re, options.prefix + "-" + i + "-");
                 i++;
             });
