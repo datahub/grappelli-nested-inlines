@@ -62,7 +62,7 @@ magic happen.
     class MyNestedInline(NestedTabularInline):
         model = C
         classes = ['grp-lazy']
-
+        
     class MyInline(NestedStackedInline):
         model = B
         inline_classes = ['grp-collapse grp-open']
