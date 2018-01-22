@@ -5,5 +5,5 @@
 .nested-inline .nested-inline {
     border: 1px solid #AAAAAA;
     margin: 12px 1% 17px 1%;
-    width: 97.6%;
+    width: auto;
 }

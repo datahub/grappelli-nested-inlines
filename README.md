@@ -53,6 +53,31 @@ magic happen.
 
     admin.site.register(A, MyAdmin)
 
+### New features from Dietmap
+
+##### 1. Added support for lazy formset initialization
+ Example:
+
+
+    class MyNestedInline(NestedTabularInline):
+        model = C
+        classes = ['grp-lazy']
+        
+    class MyInline(NestedStackedInline):
+        model = B
+        inline_classes = ['grp-collapse grp-open']
+          
+    class MyAdmin(NestedModelAdmin):
+        inlines = [MyInline,]
+    
+Formset for MyNestedInline model admin will get initialized once it's parent form of MyInline is opened. This saves DOM processing time for large nested formsets.
+ 
+ 
+##### 2. Added inline form events in DOM according to: https://docs.djangoproject.com/en/2.0/ref/contrib/admin/javascript/:
+`formset:added`, `formset:removed` as well as new specific events: `formset:initialized` triggered when lazy formset has been initialized.
+
+
+
 ## Credits
 
 As Trinh said himself, this package is mainly the work of other developers. I (Vestal) have merely adapted this package to support Django Grappelli (as Trinh says he's taken other developers' patches "and packaged them nicely for ease of use").

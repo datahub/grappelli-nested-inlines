@@ -1,8 +1,8 @@
 {% load i18n admin_static grp_tags %}
-{% with recursive_formset=inline_admin_formset stacked_template='admin/edit_inline/stacked.html' tabular_template='admin/edit_inline/tabular.html'%}
+{% with recursive_formset=inline_admin_formset stacked_template='admin/grappelli_nested/edit_inline/stacked.html' tabular_template='admin/grappelli_nested/edit_inline/tabular.html'%}
 {% with recursive_formset.opts.sortable_field_name|default:"" as sortable_field_name %}
 
-
+ <!-- formset -->
 <div class="grp-group grp-stacked {% if recursive_formset %}{{ recursive_formset.formset.prefix|default:"Root" }}-nested-inline nested-inline{% endif %} {% if inline_admin_formset.opts.classes %} {{ inline_admin_formset.opts.classes|join:" " }}{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-group">
         <h2 class="grp-collapse-handler">{% if inline_admin_formset.opts.title %}{{ inline_admin_formset.opts.title }}{% else %}{{ inline_admin_formset.opts.verbose_name_plural|title }}{% endif %}</h2>
         <ul class="grp-tools">
@@ -18,6 +18,8 @@
             <!-- element -->
             <div class="grp-module {{ recursive_formset.opts.inline_classes|join:" "|default:"grp-collapse grp-closed" }}{% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last %} grp-empty-form{% endif %}" id="{{ inline_admin_formset.formset.prefix }}{% if forloop.last %}-empty{% else %}{{ forloop.counter0 }}{% endif %}">
                 <h3 class="grp-collapse-handler">{{ recursive_formset.opts.verbose_name|title }}&nbsp;&nbsp;{% if inline_admin_form.original %}{{ inline_admin_form.original }}{% endif %}</h3>
+                {% block fromset_tools %}
+                {% endblock %}
                 <ul class="grp-tools">
                     {% if inline_admin_form.show_url %}<li><a href="{% url 'admin:view_on_site' inline_admin_form.original_content_type_id inline_admin_form.original.pk %}" class="grp-icon grp-viewsite-link" title="{% trans 'View on Site' %}" target="_blank"></a></li>{% endif %}
                     {% if recursive_formset.opts.sortable_field_name %}
@@ -53,12 +55,7 @@
 
                 {% if inline_admin_form.form.nested_formsets %}
                     {% for inline_admin_formset in inline_admin_form.form.nested_formsets %}
-                        {% if inline_admin_formset.opts.template == stacked_template %}
-                            {% include stacked_template %}
-                        {% else %}
-                            {% include tabular_template %}
-                        {% endif %}
-                        <div class="nested-inline-bottom-border"></div>
+                        {% include inline_admin_formset.opts.template  %}
                     {% endfor %}
                 {% endif %}
             </div>
@@ -79,6 +76,10 @@
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
+
+        var INITIALIZE_INLINE_EVENT_NAME = 'formset:initializeNested';
+        var FORMSET_INITIALIZED_EVENT_NAME = 'formset:initialized';
+
         var prefix = "{{ recursive_formset.formset.prefix }}";
         var related_lookup_fields_fk = {% get_related_lookup_fields_fk recursive_formset.opts %};
         var related_lookup_fields_m2m = {% get_related_lookup_fields_m2m recursive_formset.opts %};
@@ -86,88 +87,190 @@
         var autocomplete_fields_fk = {% get_autocomplete_lookup_fields_fk recursive_formset.opts %};
         var autocomplete_fields_m2m = {% get_autocomplete_lookup_fields_m2m recursive_formset.opts %};
         var autocomplete_fields_generic = {% get_autocomplete_lookup_fields_generic recursive_formset.opts %};
-        $.each(related_lookup_fields_fk, function() {
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this + "']")
-            .grp_related_fk({lookup_url:"{% url 'grp_related_lookup' %}"});
-        });
-        $.each(related_lookup_fields_m2m, function() {
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this + "']")
-            .grp_related_m2m({lookup_url:"{% url 'grp_m2m_lookup' %}"});
-        });
-        $.each(related_lookup_fields_generic, function() {
-            var content_type = this[0],
-                object_id = this[1];
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
-            .each(function() {
-                var i = $(this).attr("id").match(/-\d+-/);
-                if (i) {
-                    var ct_id = "#id_" + prefix + i[0] + content_type,
-                        obj_id = "#id_" + prefix + i[0] + object_id;
-                    $(this).grp_related_generic({content_type:ct_id, object_id:obj_id, lookup_url:"{% url 'grp_related_lookup' %}"});
-                }
-            });
-        });
-        $.each(autocomplete_fields_fk, function() {
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this + "']")
-            .each(function() {
-                $(this).grp_autocomplete_fk({
-                    lookup_url:"{% url 'grp_related_lookup' %}",
-                    autocomplete_lookup_url:"{% url 'grp_autocomplete_lookup' %}"
-                });
-            });
-        });
-        $.each(autocomplete_fields_m2m, function() {
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this + "']")
-            .each(function() {
-                $(this).grp_autocomplete_m2m({
-                    lookup_url:"{% url 'grp_m2m_lookup' %}",
-                    autocomplete_lookup_url:"{% url 'grp_autocomplete_lookup' %}"
-                });
-            });
-        });
-        $.each(autocomplete_fields_generic, function() {
-            var content_type = this[0],
-                object_id = this[1];
-            $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items > div:not(.grp-empty-form)")
-            .find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
-            .each(function() {
-                var i = $(this).attr("id").match(/-\d+-/);
-                if (i) {
-                    var ct_id = "#id_" + prefix + i[0] + content_type,
-                        obj_id = "#id_" + prefix + i[0] + object_id;
-                    $(this).grp_autocomplete_generic({
-                        content_type:ct_id,
-                        object_id:obj_id,
-                        lookup_url:"{% url 'grp_related_lookup' %}",
-                        autocomplete_lookup_url:"{% url 'grp_autocomplete_lookup' %}"
-                    });
-                }
-            });
-        });
+        var prefixElements = prefix.replace('__prefix__', 0).split(/_set-\d+/);
 
-        $("#{{ recursive_formset.formset.prefix }}-group").grp_inline({
-            prefix: "{{ recursive_formset.formset.prefix }}",
-            onAfterRemoved: function(inline) {},
-            onAfterAdded: function(form) {
+        var $formsetGroupWrapper = $('#' + prefix + '-group');
+        var isLazyInit = $formsetGroupWrapper.hasClass("grp-lazy");
+
+        if(!isLazyInit) {
+            initializeFormset(prefix);
+        } else {
+            registerLazyInitListener();
+        }
+
+        function registerLazyInitListener() {
+            $formsetGroupWrapper.on(INITIALIZE_INLINE_EVENT_NAME, function (e, nestedPrefix) {
+                if (!e.isDefaultPrevented() && prefixMatches(nestedPrefix)) {
+                    initializeFormset(nestedPrefix);
+                    e.preventDefault();
+                    $formsetGroupWrapper.unbind(INITIALIZE_INLINE_EVENT_NAME);
+                }
+            });
+        }
+
+        function prefixMatches(otherPrefix) {
+            var otherPrefixElements = otherPrefix.split(/_set-\d+/);
+            return $(prefixElements).not(otherPrefixElements).length === 0 &&
+                $(otherPrefixElements).not(prefixElements).length === 0;
+        }
+
+        function initializeFormset(prefix) {
+            const $formsetGroupWrapper = $('#' + prefix + '-group');
+
+            if($formsetGroupWrapper.attr("grpInitialized")) {
+                return;
+            }
+
+            $.each(related_lookup_fields_fk, function () {
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    .grp_related_fk({lookup_url: "{% url 'grp_related_lookup' %}"});
+            });
+            $.each(related_lookup_fields_m2m, function () {
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    .grp_related_m2m({lookup_url: "{% url 'grp_m2m_lookup' %}"});
+            });
+            $.each(related_lookup_fields_generic, function () {
+                var content_type = this[0],
+                    object_id = this[1];
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
+                    .each(function () {
+                        var i = $(this).attr("id").match(/-\d+-/);
+                        if (i) {
+                            var ct_id = "#id_" + prefix + i[0] + content_type,
+                                obj_id = "#id_" + prefix + i[0] + object_id;
+                            $(this).grp_related_generic({
+                                content_type: ct_id,
+                                object_id: obj_id,
+                                lookup_url: "{% url 'grp_related_lookup' %}"
+                            });
+                        }
+                    });
+            });
+            $.each(autocomplete_fields_fk, function () {
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    .each(function () {
+                        $(this).grp_autocomplete_fk({
+                            lookup_url: "{% url 'grp_related_lookup' %}",
+                            autocomplete_lookup_url: "{% url 'grp_autocomplete_lookup' %}"
+                        });
+                    });
+            });
+            $.each(autocomplete_fields_m2m, function () {
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    .each(function () {
+                        $(this).grp_autocomplete_m2m({
+                            lookup_url: "{% url 'grp_m2m_lookup' %}",
+                            autocomplete_lookup_url: "{% url 'grp_autocomplete_lookup' %}"
+                        });
+                    });
+            });
+            $.each(autocomplete_fields_generic, function () {
+                var content_type = this[0],
+                    object_id = this[1];
+                $formsetGroupWrapper.find(" > div.grp-items > div:not(.grp-empty-form)")
+                    .find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
+                    .each(function () {
+                        var i = $(this).attr("id").match(/-\d+-/);
+                        if (i) {
+                            var ct_id = "#id_" + prefix + i[0] + content_type,
+                                obj_id = "#id_" + prefix + i[0] + object_id;
+                            $(this).grp_autocomplete_generic({
+                                content_type: ct_id,
+                                object_id: obj_id,
+                                lookup_url: "{% url 'grp_related_lookup' %}",
+                                autocomplete_lookup_url: "{% url 'grp_autocomplete_lookup' %}"
+                            });
+                        }
+                    });
+            });
+
+            $formsetGroupWrapper.find('> .grp-items > .grp-collapse > .grp-collapse-handler').one('click', function () {
+                //notify nested formsets if current form opened
+                var $form = $(this).parent();
+                notifyLazyNestedInlines($form);
+            });
+
+            $formsetGroupWrapper.find('> ul .grp-open-handler').one('click', function () {
+                //notify all forms in the formset on open-all handler
+                notifyLazyNestedInlines($formsetGroupWrapper);
+            });
+
+            $formsetGroupWrapper.grp_inline({
+                prefix: prefix,
+                onAfterAdded: initializeInlineForm
+            });
+
+            {% if recursive_formset.opts.sortable_field_name %}
+                    $formsetGroupWrapper.find(" > div.grp-items").sortable({
+                        handle: "a.grp-drag-handler",
+                        items: "div.grp-dynamic-form",
+                        axis: "y",
+                        appendTo: 'body',
+                        forceHelperSize: true,
+                        placeholder: 'grp-module ui-sortable-placeholder',
+                        forcePlaceholderSize: true,
+                        containment: '#' + prefix + "-group > div.grp-items",
+                        tolerance: 'pointer',
+                        start: function (evt, ui) {
+                            ui.placeholder.height(ui.item.height() + 12);
+                        }
+                    });
+                    $("#{{ opts.model_name }}_form").bind("submit", function () {
+                        var sortable_field_name = "{{ recursive_formset.opts.sortable_field_name }}",
+                            sortable_excludes = {% get_sortable_excludes recursive_formset.opts %},
+                            i = 0;
+                        $formsetGroupWrapper.find("div.grp-dynamic-form").each(function () {
+                            var fields = $(this).find("fieldset :input[type!=radio][type!=checkbox],input:checked,input[type=file]"),
+                                submit_values = false,
+                                has_value;
+                            $(fields).each(function () {
+                                // position is being updated if
+                                // a) the field has a value
+                                // b) if the field is not exluded with sortable_excludes (e.g. with default values)
+                                has_value = $(this).val() || ($(this).attr('type') == 'file' && $(this).siblings('a').length);
+                                if (has_value && $(this).attr("name") && $.inArray($(this).attr("name").split("-").pop(), sortable_excludes) == -1) {
+                                    submit_values = true;
+                                }
+                            });
+                            if (submit_values) {
+                                $(this).find("input[name$='" + sortable_field_name + "']").val(i);
+                                i++;
+                            }
+                        });
+                    });
+                {% endif %}
+
+                $formsetGroupWrapper.attr("grpInitialized", true);
+                $(document).triggerHandler(FORMSET_INITIALIZED_EVENT_NAME, [prefix]);
+        }
+
+        function notifyLazyNestedInlines($form) {
+            $form.find('.grp-group.nested-inline.grp-lazy').not('[grpInitialized=true]').each(function (index, nestedFormset) {
+                var nestedPrefix = nestedFormset.id.substring(0, nestedFormset.id.indexOf('-group'));
+                $(nestedFormset).triggerHandler(INITIALIZE_INLINE_EVENT_NAME, [nestedPrefix]);
+            });
+        }
+
+        function initializeInlineForm(form, prefix) {
                 grappelli.reinitDateTimeFields(form);
                 grappelli.updateSelectFilter(form);
                 $.each(related_lookup_fields_fk, function() {
-                    form.find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    form.find("input[name$='" + this + "']")
                     .grp_related_fk({lookup_url:"{% url 'grp_related_lookup' %}"});
                 });
                 $.each(related_lookup_fields_m2m, function() {
-                    form.find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    form.find("input[name$='" + this + "']")
                     .grp_related_m2m({lookup_url:"{% url 'grp_m2m_lookup' %}"});
                 });
                 $.each(related_lookup_fields_generic, function() {
                     var content_type = this[0],
                         object_id = this[1];
-                    form.find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
+                    form.find("input[name$='" + this[1] + "']")
                     .each(function() {
                         var i = $(this).attr("id").match(/-\d+-/);
                         if (i) {
@@ -178,7 +281,7 @@
                     });
                 });
                 $.each(autocomplete_fields_fk, function() {
-                    form.find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    form.find("input[name$='" + this + "']")
                     .each(function() {
                         $(this).grp_autocomplete_fk({
                             lookup_url:"{% url 'grp_related_lookup' %}",
@@ -187,7 +290,7 @@
                     });
                 });
                 $.each(autocomplete_fields_m2m, function() {
-                    form.find("input[name^='" + prefix + "'][name$='" + this + "']")
+                    form.find("input[name$='" + this + "']")
                     .each(function() {
                         $(this).grp_autocomplete_m2m({
                             lookup_url:"{% url 'grp_m2m_lookup' %}",
@@ -198,7 +301,7 @@
                 $.each(autocomplete_fields_generic, function() {
                     var content_type = this[0],
                         object_id = this[1];
-                    form.find("input[name^='" + prefix + "'][name$='" + this[1] + "']")
+                    form.find("input[name$='" + this[1] + "']")
                     .each(function() {
                         var i = $(this).attr("id").match(/-\d+-/);
                         if (i) {
@@ -215,48 +318,10 @@
                 });
                 form.grp_collapsible();
                 form.find(".grp-collapse").grp_collapsible();
-            }
-        });
 
-        {% if recursive_formset.opts.sortable_field_name %}
-        $("#{{ recursive_formset.formset.prefix }}-group > div.grp-items").sortable({
-            handle: "a.grp-drag-handler",
-            items: "div.grp-dynamic-form",
-            axis: "y",
-            appendTo: 'body',
-            forceHelperSize: true,
-            placeholder: 'grp-module ui-sortable-placeholder',
-            forcePlaceholderSize: true,
-            containment: '#{{ recursive_formset.formset.prefix }}-group > div.grp-items',
-            tolerance: 'pointer',
-            start: function(evt, ui) {
-                ui.placeholder.height(ui.item.height() + 12);
-            }
-        });
-        $("#{{ opts.model_name }}_form").bind("submit", function(){
-            var sortable_field_name = "{{ recursive_formset.opts.sortable_field_name }}",
-                sortable_excludes = {% get_sortable_excludes recursive_formset.opts %},
-                i = 0;
-            $("#{{ recursive_formset.formset.prefix }}-group").find("div.grp-dynamic-form").each(function(){
-                var fields = $(this).find("fieldset :input[type!=radio][type!=checkbox],input:checked,input[type=file]"),
-                    submit_values = false,
-                    has_value;
-                $(fields).each(function() {
-                    // position is being updated if
-                    // a) the field has a value
-                    // b) if the field is not exluded with sortable_excludes (e.g. with default values)
-                    has_value = $(this).val() || ($(this).attr('type') == 'file' && $(this).siblings('a').length);
-                    if (has_value && $(this).attr("name") && $.inArray($(this).attr("name").split("-").pop(), sortable_excludes) == -1) {
-                        submit_values = true;
-                    }
-                });
-                if (submit_values) {
-                    $(this).find("input[name$='"+sortable_field_name+"']").val(i);
-                    i++;
-                }
-            });
-        });
-        {% endif %}
+                notifyLazyNestedInlines($(form));
+        }
+
 
     });
 })(grp.jQuery);
