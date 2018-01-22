@@ -39,6 +39,7 @@
             addButtonHandler(inline.find("a." + options.addCssClass + "." + inline.attr('id')), options);
             removeButtonHandler(inline.find("a." + options.removeCssClass + "." + inline.attr('id')), options);
             deleteButtonHandler(inline.find("a." + options.deleteCssClass + "." + inline.attr('id')), options);
+            deactivateWidgetsForDisabledInputs();
         });
     };
 
@@ -65,7 +66,7 @@
         elem.find("div.grp-module").each(function() {
             var form = $(this);
             // callback
-            options.onBeforeInit(form);
+            options.onBeforeInit(form, options.prefix);
             // add options.formCssClass to all forms in the inline
             // except table/theader/add-item
             if (form.attr('id') !== "") {
@@ -78,7 +79,7 @@
                 }
             });
             // callback
-            options.onAfterInit(form);
+            options.onAfterInit(form, options.prefix);
         });
     };
 
@@ -94,15 +95,16 @@
     };
 
     addButtonHandler = function(elem, options) {
-        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
+            var elem = $(this);
+            updateFormPrefix(this, options);
             var inline = elem.closest(".grp-group"),
                 totalForms = inline.find("#id_" + options.prefix + "-TOTAL_FORMS"),
                 maxForms = inline.find("#id_" + options.prefix + "-MAX_NUM_FORMS"),
                 addButtons = inline.find("a." + options.addCssClass + "." + inline.attr('id')),
                 empty_template = inline.find("#" + options.prefix + "-empty");
             // callback
-            options.onBeforeAdded(inline);
+            options.onBeforeAdded(inline, options.prefix);
             // create new form
             var index = parseInt(totalForms.val(), 10),
                 form = empty_template.clone(true);
@@ -115,8 +117,8 @@
             // of the inline, we can add the form to DOM, not earlier.
             // This way we can support handlers that track live element
             // adding/removing, like those used in django-autocomplete-light
-            form.insertBefore(empty_template)
-                .addClass(options.formCssClass).grp_inline(options);
+            var $insertedForm = form.insertBefore(empty_template)
+                .addClass(options.formCssClass);
             // update total forms
             totalForms.val(index + 1);
             // hide add button in case we've hit the max, except we want to add infinitely
@@ -124,19 +126,23 @@
                 hideAddButtons(inline, options);
             }
             // callback
-            options.onAfterAdded(form);
+            options.onAfterAdded(form, options.prefix);
+            $(document).trigger('formset:added', [$insertedForm, index, options.prefix]);
         });
     };
 
     removeButtonHandler = function(elem, options) {
-        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
+            var elem = $(this);
+            updateFormPrefix(this, options);
             var inline = elem.parents(".grp-group").first(),
                 form = $(this).parents("." + options.formCssClass).first(),
                 totalForms = inline.find("#id_" + options.prefix + "-TOTAL_FORMS"),
-                maxForms = inline.find("#id_" + options.prefix + "-MAX_NUM_FORMS");
+                maxForms = inline.find("#id_" + options.prefix + "-MAX_NUM_FORMS"),
+                re = new RegExp(options.prefix + "-(\\d+)-", 'g'),
+                removedFormIndex = getFormIndex(form, options, re);
             // callback
-            options.onBeforeRemoved(form);
+            options.onBeforeRemoved(form, options.prefix);
             // remove form
             form.remove();
             // update total forms
@@ -147,24 +153,38 @@
                 showAddButtons(inline, options);
             }
             // update form index (for all forms)
-            var re = new RegExp(options.prefix + "-\\d+-", 'g'),
-                i = 0;
-            inline.find("." + options.formCssClass).each(function() {
-                updateFormIndex($(this), options, re, options.prefix + "-" + i + "-");
-                i++;
-            });
+            var prefixPattern = '^' + options.prefix + '-\\d+$';
+            inline.find("." + options.formCssClass)
+                .filter(function(i, form) { return new RegExp(prefixPattern).test(form.id) })
+                .each(function () {
+                    var form = $(this);
+                    re.lastIndex = 0;
+
+                    var formIndex = getFormIndex(form, options, re);
+                    if (formIndex > removedFormIndex) {
+                        updateFormIndex(form, options, re, options.prefix + "-" + (formIndex - 1) + "-");
+                    }
+                });
             // callback
-            options.onAfterRemoved(inline);
+            options.onAfterRemoved(inline, options.prefix);
+            $(document).trigger('formset:removed', [inline, options.prefix]);
         });
     };
 
+    function updateFormPrefix(elem, options) {
+        var prefixBeginning = options.prefix.substring(0, options.prefix.indexOf("-"));
+        var prefix = (elem.className || []).split(" ")
+            .filter(function(className) { return className.startsWith(prefixBeginning) })
+            .pop();
+        options.prefix = prefix ? prefix.replace("-group", "") : '';
+    }
+
     deleteButtonHandler = function(elem, options) {
-        if (options.prefix.split('__prefix__').length != 1) return;
         elem.bind("click", function() {
             var deleteInput = $(this).prev(),
                 form = $(this).parents("." + options.formCssClass).first();
             // callback
-            options.onBeforeDeleted(form);
+            options.onBeforeDeleted(form, options.prefix);
             // toggle options.predeleteCssClass and toggle checkbox
             if (form.hasClass("has_original")) {
                 form.toggleClass(options.predeleteCssClass);
@@ -175,7 +195,7 @@
                 }
             }
             // callback
-            options.onAfterDeleted(form);
+            options.onAfterDeleted(form, options.prefix);
         });
     };
 
@@ -192,5 +212,33 @@
         // addButtons.show().parents('.grp-add-item').show();
         addButtons.show();
     };
+
+    /**
+     * Fix a bug of Grappelli building autocomplete and related widgets for disabled inputs
+     */
+    deactivateWidgetsForDisabledInputs = function() {
+        function updateWidgetsForDisabledFields() {
+            updateAutocompleteWidgets();
+            updateRelatedWidgets();
+        }
+
+        function updateAutocompleteWidgets() {
+            const $autocmpleteWrapper = $(".grp-autocomplete-hidden-field[disabled]").closest(".grp-autocomplete-wrapper-fk");
+            $autocmpleteWrapper.find("input").attr('readonly', 'readonly');
+            $autocmpleteWrapper.find('a').remove();
+            $autocmpleteWrapper.addClass("grp-readolny")
+        }
+
+        function updateRelatedWidgets(){
+            $(".related-widget-wrapper").each(function(index, wrapper)  {
+                const $wrapper = $(wrapper);
+                if ($wrapper.find('input:disabled, select:disabled').length) {
+                    $wrapper.find('.grp-related-widget-tools').remove();
+                }
+            });
+        }
+
+        setTimeout(updateWidgetsForDisabledFields, 100);
+    }
 
 })(grp.jQuery);

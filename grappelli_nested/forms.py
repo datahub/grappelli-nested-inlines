@@ -1,3 +1,4 @@
+from django.contrib.admin.helpers import InlineAdminFormSet
 from django.forms.forms import BaseForm, ErrorDict
 from django.forms.models import ModelForm, BaseInlineFormSet
 
@@ -33,7 +34,7 @@ class NestedFormMixin(object):
         if self.instance.pk is None:
             nested_formsets = getattr(self, 'nested_formsets', ())
             nested_has_changed = any(
-                (formset.has_changed() for formset in nested_formsets))
+                (formset.has_changed() for formset in nested_formsets if hasattr(formset, "has_changed")))
         else:
             nested_has_changed = False
         return (super(NestedFormMixin, self).has_changed() or
@@ -58,7 +59,7 @@ class NestedModelFormMixin(NestedFormMixin):
         #TODO this should be generalized
         if hasattr(self, 'nested_formsets'):
             for f in self.nested_formsets:
-                return f.dependency_has_changed()
+                return f.formset.dependency_has_changed() if isinstance(f, InlineAdminFormSet) else f.dependency_has_changed()
 
 class BaseNestedModelForm(NestedModelFormMixin, ModelForm):
     pass
