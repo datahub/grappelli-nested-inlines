@@ -1,3 +1,5 @@
+## We are no longer supporting this project. It has moved: https://github.com/allanjamesvestal/grappelli-nested-inlines
+
 # django-nested-inlines
 
 ## Overview
